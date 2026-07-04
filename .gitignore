@@ -1,0 +1,11 @@
+# Downloaded installers and ISOs are the *backup payload* - never commit them.
+# Only the scripts, manifest and docs live in git.
+backup/
+backups/
+# checksums produced next to downloads
+*.sha256
+*.sha512
+
+.DS_Store
+
+output.log

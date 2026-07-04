@@ -1,0 +1,374 @@
+# apps.tsv - single source of truth for the offline app backup.
+#
+# Tab-separated. One row = one downloadable installer file.
+# Columns:
+#   group   logical folder (office, browsers, media, ...)
+#   app     application folder name
+#   os      linux | macos | windows
+#   arch    x64 | arm64
+#   ext     rpm | deb | dmg | pkg | msi | exe | AppImage | zip | tar.gz | tar.xz
+#   source  where to fetch from, one of:
+#             https://...            -> direct download (redirects are followed)
+#             gh:owner/repo:REGEX    -> newest GitHub release asset whose name matches REGEX
+#             ghtag:owner/repo:URL   -> newest GitHub tag substituted into URL
+#             dir:BASE|SEG|...|FILE  -> newest matching file in a directory index
+#             page:URL|REGEX         -> first absolute link on a download page
+#
+# Downloaded files land in:  backups/apps/<group>/<app>/<os>-<arch>/<vendor-filename>
+#
+# Apps that ship ONLY through distro repos or version-pinned URLs are listed in
+# README.md instead - install those with the OS scripts in
+# 1_sysadm_sre_devops_tools, or grab them by hand.
+#
+# group	app	os	arch	ext	source
+
+# ─── browsers ───────────────────────────────────────────────────────────────
+browsers	google-chrome	linux	x64	rpm	https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+browsers	google-chrome	linux	x64	deb	https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+browsers	google-chrome	macos	x64	dmg	https://dl.google.com/chrome/mac/universal/stable/GGRO/googlechrome.dmg
+browsers	google-chrome	windows	x64	msi	https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi
+browsers	brave	linux	x64	rpm	gh:brave/brave-browser:brave-browser-[0-9].*x86_64\.rpm$
+browsers	brave	linux	x64	deb	gh:brave/brave-browser:brave-browser_[0-9].*amd64\.deb$
+browsers	brave	linux	arm64	deb	gh:brave/brave-browser:brave-browser_[0-9].*arm64\.deb$
+browsers	brave	macos	x64	dmg	https://laptop-updates.brave.com/latest/osx
+browsers	brave	windows	x64	exe	https://laptop-updates.brave.com/latest/winx64
+browsers	brave	windows	arm64	exe	https://laptop-updates.brave.com/latest/winarm64
+browsers	firefox	linux	x64	tar.xz	https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=en-US
+browsers	firefox	macos	x64	dmg	https://download.mozilla.org/?product=firefox-latest-ssl&os=osx&lang=en-US
+browsers	firefox	windows	x64	exe	https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US
+browsers	firefox	windows	arm64	exe	https://download.mozilla.org/?product=firefox-latest-ssl&os=win64-aarch64&lang=en-US
+browsers	floorp	windows	x64	exe	gh:Floorp-Projects/Floorp:floorp-windows-x86_64\.installer\.exe$
+browsers	floorp	macos	x64	dmg	gh:Floorp-Projects/Floorp:floorp-macOS-universal\.dmg$
+browsers	vivaldi	linux	x64	deb	dir:https://repo.vivaldi.com/stable/deb/pool/main/|vivaldi-stable_.*_amd64\.deb$
+browsers	vivaldi	linux	arm64	deb	dir:https://repo.vivaldi.com/stable/deb/pool/main/|vivaldi-stable_.*_arm64\.deb$
+browsers	opera	windows	x64	exe	dir:https://get.opera.com/pub/opera/desktop/|^[0-9.]+/$|win/|Opera_[0-9.]+_Setup_x64\.exe$
+browsers	tor-browser	linux	x64	tar.xz	dir:https://www.torproject.org/dist/torbrowser/|^[0-9]+\.[0-9.]+/$|tor-browser-linux-x86_64-[0-9.]+\.tar\.xz$
+browsers	tor-browser	macos	x64	dmg	dir:https://www.torproject.org/dist/torbrowser/|^[0-9]+\.[0-9.]+/$|tor-browser-macos-[0-9.]+\.dmg$
+browsers	tor-browser	windows	x64	exe	dir:https://www.torproject.org/dist/torbrowser/|^[0-9]+\.[0-9.]+/$|tor-browser-windows-x86_64-portable-[0-9.]+\.exe$
+
+# ─── office / notes ─────────────────────────────────────────────────────────
+office	libreoffice	linux	x64	rpm.tar.gz	dir:https://download.documentfoundation.org/libreoffice/stable/|^[0-9]+\.[0-9.]+/$|rpm/|x86_64/|LibreOffice_[0-9.]+_Linux_x86-64_rpm\.tar\.gz$
+office	libreoffice	linux	x64	deb.tar.gz	dir:https://download.documentfoundation.org/libreoffice/stable/|^[0-9]+\.[0-9.]+/$|deb/|x86_64/|LibreOffice_[0-9.]+_Linux_x86-64_deb\.tar\.gz$
+office	libreoffice	windows	x64	msi	dir:https://download.documentfoundation.org/libreoffice/stable/|^[0-9]+\.[0-9.]+/$|win/|x86_64/|LibreOffice_[0-9.]+_Win_x86-64\.msi$
+office	libreoffice	macos	arm64	dmg	dir:https://download.documentfoundation.org/libreoffice/stable/|^[0-9]+\.[0-9.]+/$|mac/|aarch64/|LibreOffice_[0-9.]+_MacOS_aarch64\.dmg$
+office	libreoffice	macos	x64	dmg	dir:https://download.documentfoundation.org/libreoffice/stable/|^[0-9]+\.[0-9.]+/$|mac/|x86_64/|LibreOffice_[0-9.]+_MacOS_x86-64\.dmg$
+office	libreoffice-langpack-ru	linux	x64	rpm.tar.gz	dir:https://download.documentfoundation.org/libreoffice/stable/|^[0-9]+\.[0-9.]+/$|rpm/|x86_64/|LibreOffice_[0-9.]+_Linux_x86-64_rpm_langpack_ru\.tar\.gz$
+office	libreoffice-langpack-ru	linux	x64	deb.tar.gz	dir:https://download.documentfoundation.org/libreoffice/stable/|^[0-9]+\.[0-9.]+/$|deb/|x86_64/|LibreOffice_[0-9.]+_Linux_x86-64_deb_langpack_ru\.tar\.gz$
+office	libreoffice-langpack-ru	macos	arm64	dmg	dir:https://download.documentfoundation.org/libreoffice/stable/|^[0-9]+\.[0-9.]+/$|mac/|aarch64/|LibreOffice_[0-9.]+_MacOS_aarch64_langpack_ru\.dmg$
+office	libreoffice-langpack-ru	macos	x64	dmg	dir:https://download.documentfoundation.org/libreoffice/stable/|^[0-9]+\.[0-9.]+/$|mac/|x86_64/|LibreOffice_[0-9.]+_MacOS_x86-64_langpack_ru\.dmg$
+office	libreoffice-langpack-ru	windows	x64	msi	dir:https://download.documentfoundation.org/libreoffice/stable/|^[0-9]+\.[0-9.]+/$|win/|x86_64/|LibreOffice_[0-9.]+_Win_x86-64_helppack_ru\.msi$
+office	neovim	linux	x64	tar.gz	gh:neovim/neovim:nvim-linux-x86_64\.tar\.gz$
+office	neovim	linux	arm64	tar.gz	gh:neovim/neovim:nvim-linux-arm64\.tar\.gz$
+office	neovim	macos	x64	tar.gz	gh:neovim/neovim:nvim-macos-x86_64\.tar\.gz$
+office	neovim	macos	arm64	tar.gz	gh:neovim/neovim:nvim-macos-arm64\.tar\.gz$
+office	neovim	windows	x64	msi	gh:neovim/neovim:nvim-win64\.msi$
+office	neovim	windows	arm64	msi	gh:neovim/neovim:nvim-win-arm64\.msi$
+office	notepad-plus-plus	windows	x64	exe	gh:notepad-plus-plus/notepad-plus-plus:npp\..*\.Installer\.x64\.exe$
+office	notepad-plus-plus	windows	arm64	exe	gh:notepad-plus-plus/notepad-plus-plus:npp\..*\.Installer\.arm64\.exe$
+
+# ─── media ──────────────────────────────────────────────────────────────────
+media	obs-studio	windows	x64	exe	gh:obsproject/obs-studio:OBS-Studio-.*-Windows-x64-Installer\.exe$
+media	obs-studio	macos	arm64	dmg	gh:obsproject/obs-studio:OBS-Studio-.*-macOS-Apple\.dmg$
+media	obs-studio	macos	x64	dmg	gh:obsproject/obs-studio:OBS-Studio-.*-macOS-Intel\.dmg$
+media	shotcut	windows	x64	exe	gh:mltframework/shotcut:shotcut-win64-.*\.exe$
+media	shotcut	macos	x64	dmg	gh:mltframework/shotcut:shotcut-macos-[0-9.]+\.dmg$
+media	shotcut	linux	x64	AppImage	gh:mltframework/shotcut:shotcut-linux-x86_64-.*\.AppImage$
+media	audacity	windows	x64	exe	gh:audacity/audacity:audacity-win-.*-64bit\.exe$
+media	audacity	windows	arm64	exe	gh:audacity/audacity:audacity-win-.*-arm64\.exe$
+media	audacity	macos	x64	dmg	gh:audacity/audacity:audacity-macOS-.*-universal\.dmg$
+media	audacity	linux	x64	AppImage	gh:audacity/audacity:audacity-linux-.*-x64-22\.04\.AppImage$
+media	handbrake	windows	x64	exe	gh:HandBrake/HandBrake:HandBrake-.*-x86_64-Win_GUI\.exe$
+media	handbrake	windows	arm64	exe	gh:HandBrake/HandBrake:HandBrake-.*-arm64-Win_GUI\.exe$
+media	handbrake	macos	x64	dmg	gh:HandBrake/HandBrake:HandBrake-[0-9][^-]*\.dmg$
+media	vlc	windows	x64	exe	dir:https://get.videolan.org/vlc/last/win64/|vlc-.*-win64\.exe$
+media	vlc	macos	x64	dmg	dir:https://get.videolan.org/vlc/last/macosx/|vlc-.*-universal\.dmg$
+media	gimp	windows	x64	exe	dir:https://download.gimp.org/gimp/v3.0/windows/|gimp-[0-9.]+-setup\.exe$
+media	gimp	macos	arm64	dmg	dir:https://download.gimp.org/gimp/v3.0/macos/|gimp-[0-9.]+-arm64\.dmg$
+media	gimp	macos	x64	dmg	dir:https://download.gimp.org/gimp/v3.0/macos/|gimp-[0-9.]+-x86_64\.dmg$
+media	blender	linux	x64	tar.xz	dir:https://download.blender.org/release/|Blender[0-9.]+/|blender-.*-linux-x64\.tar\.xz$
+media	blender	windows	x64	msi	dir:https://download.blender.org/release/|Blender[0-9.]+/|blender-.*-windows-x64\.msi$
+media	blender	macos	arm64	dmg	dir:https://download.blender.org/release/|Blender[0-9.]+/|blender-.*-macos-arm64\.dmg$
+media	openshot	windows	x64	exe	gh:OpenShot/openshot-qt:OpenShot-.*-x86_64\.exe$
+media	openshot	macos	x64	dmg	gh:OpenShot/openshot-qt:OpenShot-.*-x86_64\.dmg$
+media	openshot	linux	x64	AppImage	gh:OpenShot/openshot-qt:OpenShot-.*-x86_64\.AppImage$
+media	k-lite-codec-pack	windows	x64	exe	page:https://www.codecguide.com/download_k-lite_codec_pack_standard.htm|codecguide\.com/K-Lite_Codec_Pack_[0-9]+_Standard\.exe$
+
+# ─── security ───────────────────────────────────────────────────────────────
+security	keepassxc	windows	x64	msi	gh:keepassxreboot/keepassxc:KeePassXC-.*-Win64\.msi$
+security	keepassxc	macos	x64	dmg	gh:keepassxreboot/keepassxc:KeePassXC-.*-x86_64\.dmg$
+security	keepassxc	macos	arm64	dmg	gh:keepassxreboot/keepassxc:KeePassXC-.*-arm64\.dmg$
+security	keepassxc	linux	x64	AppImage	gh:keepassxreboot/keepassxc:KeePassXC-.*-x86_64\.AppImage$
+security	veracrypt	windows	x64	msi	gh:veracrypt/VeraCrypt:VeraCrypt_Setup_x64_.*\.msi$
+security	veracrypt	windows	arm64	msi	gh:veracrypt/VeraCrypt:VeraCrypt_Setup_arm64_.*\.msi$
+security	veracrypt	macos	x64	dmg	gh:veracrypt/VeraCrypt:VeraCrypt_[0-9].*\.dmg$
+security	veracrypt	linux	x64	rpm	gh:veracrypt/VeraCrypt:veracrypt-[0-9].*-Fedora-.*-x86_64\.rpm$
+security	veracrypt	linux	x64	deb	gh:veracrypt/VeraCrypt:veracrypt-[0-9].*-Ubuntu-24\.04-amd64\.deb$
+security	veracrypt	linux	arm64	deb	gh:veracrypt/VeraCrypt:veracrypt-[0-9].*-Ubuntu-24\.04-arm64\.deb$
+
+# ─── comms ──────────────────────────────────────────────────────────────────
+comms	telegram	linux	x64	tar.xz	https://telegram.org/dl/desktop/linux
+comms	telegram	macos	x64	dmg	https://telegram.org/dl/desktop/mac
+comms	telegram	windows	x64	exe	https://telegram.org/dl/desktop/win64
+comms	telegram	windows	arm64	exe	https://telegram.org/dl/desktop/win_arm
+comms	slack	macos	x64	dmg	https://slack.com/ssb/download-osx-universal
+comms	slack	windows	x64	msi	https://slack.com/ssb/download-win64-msi
+comms	zoom	linux	x64	rpm	https://zoom.us/client/latest/zoom_x86_64.rpm
+comms	zoom	linux	x64	deb	https://zoom.us/client/latest/zoom_amd64.deb
+comms	zoom	macos	x64	pkg	https://zoom.us/client/latest/Zoom.pkg
+comms	zoom	macos	arm64	pkg	https://zoom.us/client/latest/Zoom.pkg?archType=arm64
+comms	zoom	windows	x64	msi	https://zoom.us/client/latest/ZoomInstallerFull.msi
+comms	zoom	windows	arm64	msi	https://zoom.us/client/latest/ZoomInstallerFull.msi?archType=winarm64
+comms	discord	linux	x64	deb	https://discord.com/api/download/stable?platform=linux&format=deb
+comms	discord	macos	x64	dmg	https://discord.com/api/download/stable?platform=osx
+comms	discord	windows	x64	exe	https://discord.com/api/download/stable?platform=win
+
+# ─── database ───────────────────────────────────────────────────────────────
+database	dbeaver	windows	x64	exe	https://dbeaver.io/files/dbeaver-ce-latest-x86_64-setup.exe
+database	dbeaver	macos	arm64	dmg	gh:dbeaver/dbeaver:dbeaver-ce-.*-macos-aarch64\.dmg$
+database	dbeaver	macos	x64	dmg	gh:dbeaver/dbeaver:dbeaver-ce-.*-macos-x86_64\.dmg$
+database	dbeaver	linux	x64	rpm	https://dbeaver.io/files/dbeaver-ce-latest-stable.x86_64.rpm
+database	dbeaver	linux	x64	deb	https://dbeaver.io/files/dbeaver-ce_latest_amd64.deb
+
+# ─── containers ─────────────────────────────────────────────────────────────
+containers	docker-desktop	linux	x64	rpm	https://desktop.docker.com/linux/main/amd64/docker-desktop-x86_64.rpm
+containers	docker-desktop	linux	x64	deb	https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb
+containers	docker-desktop	macos	arm64	dmg	https://desktop.docker.com/mac/main/arm64/Docker.dmg
+containers	docker-desktop	macos	x64	dmg	https://desktop.docker.com/mac/main/amd64/Docker.dmg
+containers	docker-desktop	windows	x64	exe	https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe
+containers	docker-desktop	windows	arm64	exe	https://desktop.docker.com/win/main/arm64/Docker%20Desktop%20Installer.exe
+containers	podman-desktop	windows	x64	exe	gh:podman-desktop/podman-desktop:podman-desktop-.*-setup-x64\.exe$
+containers	podman-desktop	macos	x64	dmg	gh:podman-desktop/podman-desktop:podman-desktop-.*-universal\.dmg$
+containers	rancher-desktop	windows	x64	msi	gh:rancher-sandbox/rancher-desktop:Rancher.Desktop.Setup.*\.msi$
+containers	rancher-desktop	macos	arm64	dmg	gh:rancher-sandbox/rancher-desktop:Rancher.Desktop-.*\.aarch64\.dmg$
+containers	rancher-desktop	macos	x64	dmg	gh:rancher-sandbox/rancher-desktop:Rancher.Desktop-.*\.x86_64\.dmg$
+containers	docker-engine	linux	x64	tgz	dir:https://download.docker.com/linux/static/stable/x86_64/|docker-[0-9][0-9.]+\.tgz$
+containers	docker-engine	linux	arm64	tgz	dir:https://download.docker.com/linux/static/stable/aarch64/|docker-[0-9][0-9.]+\.tgz$
+containers	docker-compose	linux	x64	bin	gh:docker/compose:docker-compose-linux-x86_64$
+containers	docker-compose	linux	arm64	bin	gh:docker/compose:docker-compose-linux-aarch64$
+containers	docker-compose	macos	x64	bin	gh:docker/compose:docker-compose-darwin-x86_64$
+containers	docker-compose	macos	arm64	bin	gh:docker/compose:docker-compose-darwin-aarch64$
+containers	docker-compose	windows	x64	exe	gh:docker/compose:docker-compose-windows-x86_64\.exe$
+
+# ─── devops / k8s ───────────────────────────────────────────────────────────
+devops	k9s	linux	x64	tar.gz	gh:derailed/k9s:k9s_Linux_amd64\.tar\.gz$
+devops	k9s	linux	arm64	tar.gz	gh:derailed/k9s:k9s_Linux_arm64\.tar\.gz$
+devops	k9s	macos	x64	tar.gz	gh:derailed/k9s:k9s_Darwin_amd64\.tar\.gz$
+devops	k9s	macos	arm64	tar.gz	gh:derailed/k9s:k9s_Darwin_arm64\.tar\.gz$
+devops	k9s	windows	x64	zip	gh:derailed/k9s:k9s_Windows_amd64\.zip$
+devops	helm	linux	x64	tar.gz	ghtag:helm/helm:https://get.helm.sh/helm-{tag}-linux-amd64.tar.gz
+devops	helm	linux	arm64	tar.gz	ghtag:helm/helm:https://get.helm.sh/helm-{tag}-linux-arm64.tar.gz
+devops	helm	macos	x64	tar.gz	ghtag:helm/helm:https://get.helm.sh/helm-{tag}-darwin-amd64.tar.gz
+devops	helm	macos	arm64	tar.gz	ghtag:helm/helm:https://get.helm.sh/helm-{tag}-darwin-arm64.tar.gz
+devops	helm	windows	x64	zip	ghtag:helm/helm:https://get.helm.sh/helm-{tag}-windows-amd64.zip
+devops	kubectl	linux	x64	bin	ghtag:kubernetes/kubernetes:https://dl.k8s.io/release/{tag}/bin/linux/amd64/kubectl
+devops	kubectl	linux	arm64	bin	ghtag:kubernetes/kubernetes:https://dl.k8s.io/release/{tag}/bin/linux/arm64/kubectl
+devops	kubectl	macos	x64	bin	ghtag:kubernetes/kubernetes:https://dl.k8s.io/release/{tag}/bin/darwin/amd64/kubectl
+devops	kubectl	macos	arm64	bin	ghtag:kubernetes/kubernetes:https://dl.k8s.io/release/{tag}/bin/darwin/arm64/kubectl
+devops	kubectl	windows	x64	exe	ghtag:kubernetes/kubernetes:https://dl.k8s.io/release/{tag}/bin/windows/amd64/kubectl.exe
+devops	terraform	linux	x64	zip	ghtag:hashicorp/terraform:https://releases.hashicorp.com/terraform/{ver}/terraform_{ver}_linux_amd64.zip
+devops	terraform	linux	arm64	zip	ghtag:hashicorp/terraform:https://releases.hashicorp.com/terraform/{ver}/terraform_{ver}_linux_arm64.zip
+devops	terraform	macos	x64	zip	ghtag:hashicorp/terraform:https://releases.hashicorp.com/terraform/{ver}/terraform_{ver}_darwin_amd64.zip
+devops	terraform	macos	arm64	zip	ghtag:hashicorp/terraform:https://releases.hashicorp.com/terraform/{ver}/terraform_{ver}_darwin_arm64.zip
+devops	terraform	windows	x64	zip	ghtag:hashicorp/terraform:https://releases.hashicorp.com/terraform/{ver}/terraform_{ver}_windows_amd64.zip
+devops	packer	linux	x64	zip	ghtag:hashicorp/packer:https://releases.hashicorp.com/packer/{ver}/packer_{ver}_linux_amd64.zip
+devops	packer	macos	arm64	zip	ghtag:hashicorp/packer:https://releases.hashicorp.com/packer/{ver}/packer_{ver}_darwin_arm64.zip
+devops	packer	windows	x64	zip	ghtag:hashicorp/packer:https://releases.hashicorp.com/packer/{ver}/packer_{ver}_windows_amd64.zip
+devops	terragrunt	linux	x64	tar.gz	gh:gruntwork-io/terragrunt:terragrunt_linux_amd64\.tar\.gz$
+devops	terragrunt	linux	arm64	tar.gz	gh:gruntwork-io/terragrunt:terragrunt_linux_arm64\.tar\.gz$
+devops	terragrunt	macos	x64	tar.gz	gh:gruntwork-io/terragrunt:terragrunt_darwin_amd64\.tar\.gz$
+devops	terragrunt	macos	arm64	tar.gz	gh:gruntwork-io/terragrunt:terragrunt_darwin_arm64\.tar\.gz$
+devops	terragrunt	windows	x64	zip	gh:gruntwork-io/terragrunt:terragrunt_windows_amd64\.exe\.zip$
+devops	opentofu	linux	x64	rpm	gh:opentofu/opentofu:tofu_.*_amd64\.rpm$
+devops	opentofu	linux	x64	deb	gh:opentofu/opentofu:tofu_.*_amd64\.deb$
+devops	opentofu	linux	arm64	deb	gh:opentofu/opentofu:tofu_.*_arm64\.deb$
+devops	opentofu	macos	x64	zip	gh:opentofu/opentofu:tofu_.*_darwin_amd64\.zip$
+devops	opentofu	macos	arm64	zip	gh:opentofu/opentofu:tofu_.*_darwin_arm64\.zip$
+devops	opentofu	windows	x64	zip	gh:opentofu/opentofu:tofu_.*_windows_amd64\.zip$
+devops	kops	linux	x64	bin	gh:kubernetes/kops:kops-linux-amd64$
+devops	kops	macos	arm64	bin	gh:kubernetes/kops:kops-darwin-arm64$
+devops	kops	windows	x64	exe	gh:kubernetes/kops:kops-windows-amd64$
+devops	istioctl	linux	x64	tar.gz	gh:istio/istio:istioctl-.*-linux-amd64\.tar\.gz$
+devops	istioctl	linux	arm64	tar.gz	gh:istio/istio:istioctl-.*-linux-arm64\.tar\.gz$
+devops	istioctl	macos	x64	tar.gz	gh:istio/istio:istioctl-.*-osx-amd64\.tar\.gz$
+devops	istioctl	macos	arm64	tar.gz	gh:istio/istio:istioctl-.*-osx-arm64\.tar\.gz$
+devops	istioctl	windows	x64	zip	gh:istio/istio:istioctl-.*-win-amd64\.zip$
+devops	sops	linux	x64	rpm	gh:getsops/sops:sops-.*\.x86_64\.rpm$
+devops	sops	linux	x64	deb	gh:getsops/sops:sops_.*_amd64\.deb$
+devops	sops	linux	arm64	deb	gh:getsops/sops:sops_.*_arm64\.deb$
+devops	sops	macos	x64	bin	gh:getsops/sops:sops-.*\.darwin\.amd64$
+devops	sops	macos	arm64	bin	gh:getsops/sops:sops-.*\.darwin\.arm64$
+devops	sops	windows	x64	exe	gh:getsops/sops:sops-.*\.amd64\.exe$
+devops	age	linux	x64	tar.gz	gh:FiloSottile/age:age-.*-linux-amd64\.tar\.gz$
+devops	age	linux	arm64	tar.gz	gh:FiloSottile/age:age-.*-linux-arm64\.tar\.gz$
+devops	age	macos	x64	tar.gz	gh:FiloSottile/age:age-.*-darwin-amd64\.tar\.gz$
+devops	age	macos	arm64	tar.gz	gh:FiloSottile/age:age-.*-darwin-arm64\.tar\.gz$
+devops	age	windows	x64	zip	gh:FiloSottile/age:age-.*-windows-amd64\.zip$
+devops	awscli	linux	x64	zip	https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+devops	awscli	linux	arm64	zip	https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip
+devops	awscli	macos	x64	pkg	https://awscli.amazonaws.com/AWSCLIV2.pkg
+devops	awscli	windows	x64	msi	https://awscli.amazonaws.com/AWSCLIV2.msi
+
+# ─── dev (IDEs, languages, git) ─────────────────────────────────────────────
+# IDEs & AI Code Editors
+dev	vscode	linux	x64	rpm	https://update.code.visualstudio.com/latest/linux-rpm-x64/stable
+dev	vscode	linux	x64	deb	https://update.code.visualstudio.com/latest/linux-deb-x64/stable
+dev	vscode	linux	arm64	rpm	https://update.code.visualstudio.com/latest/linux-rpm-arm64/stable
+dev	vscode	linux	arm64	deb	https://update.code.visualstudio.com/latest/linux-deb-arm64/stable
+dev	vscode	macos	x64	zip	https://update.code.visualstudio.com/latest/darwin-universal/stable
+dev	vscode	windows	x64	exe	https://update.code.visualstudio.com/latest/win32-x64/stable
+dev	vscode	windows	arm64	exe	https://update.code.visualstudio.com/latest/win32-arm64/stable
+dev	vscodium	windows	x64	exe	gh:VSCodium/vscodium:VSCodiumSetup-x64-.*\.exe$
+dev	vscodium	windows	arm64	exe	gh:VSCodium/vscodium:VSCodiumSetup-arm64-.*\.exe$
+dev	vscodium	linux	x64	rpm	gh:VSCodium/vscodium:codium-.*\.x86_64\.rpm$
+dev	vscodium	linux	x64	deb	gh:VSCodium/vscodium:codium_.*_amd64\.deb$
+dev	vscodium	macos	arm64	dmg	gh:VSCodium/vscodium:VSCodium.*arm64.*\.dmg$
+dev	zed	linux	x64	tar.gz	gh:zed-industries/zed:zed-linux-x86_64\.tar\.gz$
+dev	zed	linux	arm64	tar.gz	gh:zed-industries/zed:zed-linux-aarch64\.tar\.gz$
+dev	zed	macos	x64	dmg	gh:zed-industries/zed:Zed-x86_64\.dmg$
+dev	zed	macos	arm64	dmg	gh:zed-industries/zed:Zed-aarch64\.dmg$
+dev	zed	windows	x64	exe	gh:zed-industries/zed:Zed-x86_64\.exe$
+dev	zed	windows	arm64	exe	gh:zed-industries/zed:Zed-aarch64\.exe$
+dev	pycharm-community	linux	x64	tar.gz	https://download.jetbrains.com/product?code=PCC&latest&distribution=linux
+dev	pycharm-community	linux	arm64	tar.gz	https://download.jetbrains.com/product?code=PCC&latest&distribution=linuxARM64
+dev	pycharm-community	macos	x64	dmg	https://download.jetbrains.com/product?code=PCC&latest&distribution=mac
+dev	pycharm-community	macos	arm64	dmg	https://download.jetbrains.com/product?code=PCC&latest&distribution=macM1
+dev	pycharm-community	windows	x64	exe	https://download.jetbrains.com/product?code=PCC&latest&distribution=windows
+dev	intellij-community	linux	x64	tar.gz	https://download.jetbrains.com/product?code=IIC&latest&distribution=linux
+dev	intellij-community	macos	arm64	dmg	https://download.jetbrains.com/product?code=IIC&latest&distribution=macM1
+dev	intellij-community	windows	x64	exe	https://download.jetbrains.com/product?code=IIC&latest&distribution=windows
+dev	cursor	linux	x64	AppImage	page:https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable|downloads\.cursor\.com/.*\.AppImage$
+dev	cursor	linux	arm64	AppImage	page:https://www.cursor.com/api/download?platform=linux-arm64&releaseTrack=stable|downloads\.cursor\.com/.*\.AppImage$
+dev	cursor	macos	x64	dmg	page:https://www.cursor.com/api/download?platform=darwin-universal&releaseTrack=stable|downloads\.cursor\.com/.*\.dmg$
+dev	cursor	windows	x64	exe	page:https://www.cursor.com/api/download?platform=win32-x64-user&releaseTrack=stable|downloads\.cursor\.com/.*\.exe$
+dev	cursor	windows	arm64	exe	page:https://www.cursor.com/api/download?platform=win32-arm64-user&releaseTrack=stable|downloads\.cursor\.com/.*\.exe$
+dev	devin	linux	x64	tar.gz	page:https://windsurf-stable.codeium.com/api/update/linux-x64/stable/latest|codeiumdata\.com/.*\.tar\.gz$
+dev	devin	macos	x64	zip	page:https://windsurf-stable.codeium.com/api/update/darwin-x64/stable/latest|codeiumdata\.com/.*\.zip$
+dev	devin	macos	arm64	zip	page:https://windsurf-stable.codeium.com/api/update/darwin-arm64/stable/latest|codeiumdata\.com/.*\.zip$
+dev	devin	windows	x64	exe	page:https://windsurf-stable.codeium.com/api/update/win32-x64/stable/latest|codeiumdata\.com/.*\.exe$
+# Git
+dev	git	windows	x64	exe	gh:git-for-windows/git:Git-[0-9].*-64-bit\.exe$
+# Languages & Runtimes
+languages	python	windows	x64	exe	dir:https://www.python.org/ftp/python/|^3\.[0-9]+\.[0-9]+/$|python-3\.[0-9.]+-amd64\.exe$
+languages	python	macos	x64	pkg	dir:https://www.python.org/ftp/python/|^3\.[0-9]+\.[0-9]+/$|python-3\.[0-9.]+-macos11\.pkg$
+languages	golang	linux	x64	tar.gz	dir:https://go.dev/dl/|go[0-9.]+\.linux-amd64\.tar\.gz$
+languages	golang	linux	arm64	tar.gz	dir:https://go.dev/dl/|go[0-9.]+\.linux-arm64\.tar\.gz$
+languages	golang	macos	x64	tar.gz	dir:https://go.dev/dl/|go[0-9.]+\.darwin-amd64\.tar\.gz$
+languages	golang	macos	arm64	tar.gz	dir:https://go.dev/dl/|go[0-9.]+\.darwin-arm64\.tar\.gz$
+languages	golang	windows	x64	msi	dir:https://go.dev/dl/|go[0-9.]+\.windows-amd64\.msi$
+languages	nodejs	linux	x64	tar.xz	dir:https://nodejs.org/dist/latest/|node-v.*-linux-x64\.tar\.xz$
+languages	nodejs	linux	arm64	tar.xz	dir:https://nodejs.org/dist/latest/|node-v.*-linux-arm64\.tar\.xz$
+languages	nodejs	macos	arm64	tar.gz	dir:https://nodejs.org/dist/latest/|node-v.*-darwin-arm64\.tar\.gz$
+languages	nodejs	macos	x64	tar.gz	dir:https://nodejs.org/dist/latest/|node-v.*-darwin-x64\.tar\.gz$
+languages	nodejs	windows	x64	msi	dir:https://nodejs.org/dist/latest/|node-v.*-x64\.msi$
+languages	openjdk-temurin	linux	x64	tar.gz	gh:adoptium/temurin21-binaries:OpenJDK21U-jdk_x64_linux_hotspot.*\.tar\.gz$
+languages	openjdk-temurin	linux	arm64	tar.gz	gh:adoptium/temurin21-binaries:OpenJDK21U-jdk_aarch64_linux_hotspot.*\.tar\.gz$
+languages	openjdk-temurin	macos	x64	pkg	gh:adoptium/temurin21-binaries:OpenJDK21U-jdk_x64_mac_hotspot.*\.pkg$
+languages	openjdk-temurin	macos	arm64	pkg	gh:adoptium/temurin21-binaries:OpenJDK21U-jdk_aarch64_mac_hotspot.*\.pkg$
+languages	openjdk-temurin	windows	x64	msi	gh:adoptium/temurin21-binaries:OpenJDK21U-jdk_x64_windows_hotspot.*\.msi$
+languages	openjdk-temurin8	linux	x64	tar.gz	gh:adoptium/temurin8-binaries:OpenJDK8U-jdk_x64_linux_hotspot.*\.tar\.gz$
+languages	openjdk-temurin8	macos	x64	pkg	gh:adoptium/temurin8-binaries:OpenJDK8U-jdk_x64_mac_hotspot.*\.pkg$
+languages	openjdk-temurin8	windows	x64	msi	gh:adoptium/temurin8-binaries:OpenJDK8U-jdk_x64_windows_hotspot.*\.msi$
+languages	rust	linux	x64	bin	https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init
+languages	rust	linux	arm64	bin	https://static.rust-lang.org/rustup/dist/aarch64-unknown-linux-gnu/rustup-init
+languages	rust	macos	x64	bin	https://static.rust-lang.org/rustup/dist/x86_64-apple-darwin/rustup-init
+languages	rust	macos	arm64	bin	https://static.rust-lang.org/rustup/dist/aarch64-apple-darwin/rustup-init
+languages	rust	windows	x64	exe	https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe
+
+# ─── network ────────────────────────────────────────────────────────────────
+network	postman	linux	x64	tar.gz	https://dl.pstmn.io/download/latest/linux_64
+network	postman	linux	arm64	tar.gz	https://dl.pstmn.io/download/latest/linux_arm64
+network	postman	macos	x64	zip	https://dl.pstmn.io/download/latest/osx_64
+network	postman	macos	arm64	zip	https://dl.pstmn.io/download/latest/osx_arm64
+network	postman	windows	x64	exe	https://dl.pstmn.io/download/latest/win64
+network	insomnia	linux	x64	rpm	gh:Kong/insomnia:Insomnia\.Core-.*\.rpm$
+network	insomnia	linux	x64	deb	gh:Kong/insomnia:Insomnia\.Core-.*\.deb$
+network	insomnia	macos	x64	dmg	gh:Kong/insomnia:Insomnia\.Core-.*\.dmg$
+network	insomnia	windows	x64	exe	gh:Kong/insomnia:Insomnia\.Core-.*\.exe$
+network	wireshark	windows	x64	exe	https://1.na.dl.wireshark.org/win64/Wireshark-latest-x64.exe
+network	wireshark	windows	arm64	exe	https://1.na.dl.wireshark.org/win64/Wireshark-latest-arm64.exe
+network	wireshark	macos	x64	dmg	page:https://www.wireshark.org/download.html|/osx/Wireshark%20[0-9.]+\.dmg$
+network	nmap	windows	x64	exe	dir:https://nmap.org/dist/|nmap-[0-9.]+-setup\.exe$
+network	nmap	macos	x64	dmg	dir:https://nmap.org/dist/|nmap-[0-9.]+\.dmg$
+network	winmtr	windows	x64	zip	gh:White-Tiger/WinMTR:WinMTR-v[0-9]+-static\.zip$
+network	tigervnc	windows	x64	exe	https://sourceforge.net/projects/tigervnc/files/stable/1.16.2/tigervnc64-1.16.2.exe/download
+network	tigervnc	macos	x64	dmg	https://sourceforge.net/projects/tigervnc/files/stable/1.16.2/TigerVNC-1.16.2.dmg/download
+network	wireguard	windows	x64	exe	https://download.wireguard.com/windows-client/wireguard-installer.exe
+
+# ─── cad / eda ──────────────────────────────────────────────────────────────
+cad	freecad	linux	x64	AppImage	gh:FreeCAD/FreeCAD:FreeCAD_.*-Linux-x86_64-.*\.AppImage$
+cad	freecad	linux	arm64	AppImage	gh:FreeCAD/FreeCAD:FreeCAD_.*-Linux-aarch64-.*\.AppImage$
+cad	freecad	windows	x64	exe	gh:FreeCAD/FreeCAD:FreeCAD_.*-Windows-x86_64-.*installer\.exe$
+cad	freecad	macos	x64	dmg	gh:FreeCAD/FreeCAD:FreeCAD_.*-macOS-x86_64-.*\.dmg$
+cad	freecad	macos	arm64	dmg	gh:FreeCAD/FreeCAD:FreeCAD_.*-macOS-arm64-.*\.dmg$
+cad	openscad	windows	x64	exe	gh:openscad/openscad:OpenSCAD-.*-x86-64-Installer\.exe$
+cad	openscad	macos	x64	dmg	gh:openscad/openscad:OpenSCAD-[0-9.]+\.dmg$
+cad	openscad	linux	x64	AppImage	gh:openscad/openscad:OpenSCAD-.*-x86_64\.AppImage$
+cad	kicad	windows	x64	exe	page:https://downloads.kicad.org/kicad/windows/explore/stable/|kicad-[0-9.]+-x86_64\.exe$
+cad	kicad	windows	arm64	exe	page:https://downloads.kicad.org/kicad/windows/explore/stable/|kicad-[0-9.]+-arm64\.exe$
+cad	kicad	macos	x64	dmg	page:https://downloads.kicad.org/kicad/macos/explore/stable/|kicad-unified-universal-[0-9.]+\.dmg$
+
+# ─── arduino ────────────────────────────────────────────────────────────────
+arduino	arduino-ide	linux	x64	AppImage	gh:arduino/arduino-ide:arduino-ide_.*_Linux_64bit\.AppImage$
+arduino	arduino-ide	windows	x64	exe	gh:arduino/arduino-ide:arduino-ide_.*_Windows_64bit\.exe$
+arduino	arduino-ide	macos	x64	dmg	gh:arduino/arduino-ide:arduino-ide_.*_macOS_64bit\.dmg$
+arduino	arduino-ide	macos	arm64	dmg	gh:arduino/arduino-ide:arduino-ide_.*_macOS_arm64\.dmg$
+arduino	arduino-cli	linux	x64	tar.gz	gh:arduino/arduino-cli:arduino-cli_.*_Linux_64bit\.tar\.gz$
+arduino	arduino-cli	linux	arm64	tar.gz	gh:arduino/arduino-cli:arduino-cli_.*_Linux_ARM64\.tar\.gz$
+arduino	arduino-cli	macos	arm64	tar.gz	gh:arduino/arduino-cli:arduino-cli_.*_macOS_ARM64\.tar\.gz$
+arduino	arduino-cli	windows	x64	zip	gh:arduino/arduino-cli:arduino-cli_.*_Windows_64bit\.zip$
+arduino	arduino-lab-micropython	linux	x64	zip	gh:arduino/lab-micropython-editor:Arduino\.Lab\.for\.MicroPython-linux_x64\.zip$
+arduino	arduino-lab-micropython	linux	arm64	zip	gh:arduino/lab-micropython-editor:Arduino\.Lab\.for\.MicroPython-linux_arm64\.zip$
+arduino	arduino-lab-micropython	macos	x64	zip	gh:arduino/lab-micropython-editor:Arduino\.Lab\.for\.MicroPython-mac_universal\.zip$
+arduino	arduino-lab-micropython	windows	x64	zip	gh:arduino/lab-micropython-editor:Arduino\.Lab\.for\.MicroPython-win_x64\.zip$
+
+# ─── virtualization ─────────────────────────────────────────────────────────
+virtualization	virtualbox	linux	x64	rpm	dir:https://download.virtualbox.org/virtualbox/|^[0-9]+\.[0-9.]+/$|VirtualBox-[0-9.]+-[0-9.]+_[0-9]+_fedora[0-9]+-1\.x86_64\.rpm$
+virtualization	virtualbox	linux	x64	deb	dir:https://download.virtualbox.org/virtualbox/debian/pool/contrib/v/virtualbox-7.2/|virtualbox-7\.2_.*~Ubuntu~resolute_amd64\.deb$
+virtualization	virtualbox	windows	x64	exe	dir:https://download.virtualbox.org/virtualbox/|^[0-9]+\.[0-9.]+/$|VirtualBox-[0-9.]+-[0-9]+-Win\.exe$
+virtualization	virtualbox	macos	x64	dmg	dir:https://download.virtualbox.org/virtualbox/|^[0-9]+\.[0-9.]+/$|VirtualBox-[0-9.]+-[0-9]+-OSX\.dmg$
+virtualization	virtualbox	macos	arm64	dmg	dir:https://download.virtualbox.org/virtualbox/|^[0-9]+\.[0-9.]+/$|VirtualBox-[0-9.]+-[0-9]+-macOSArm64\.dmg$
+virtualization	virtualbox	linux	x64	run	dir:https://download.virtualbox.org/virtualbox/|^[0-9]+\.[0-9.]+/$|VirtualBox-[0-9.]+-[0-9]+-Linux_amd64\.run$
+virtualization	vagrant	windows	x64	msi	dir:https://releases.hashicorp.com/vagrant/|^[0-9]+\.[0-9.]+/$|vagrant_[0-9.]+_windows_amd64\.msi$
+virtualization	vagrant	macos	x64	dmg	dir:https://releases.hashicorp.com/vagrant/|^[0-9]+\.[0-9.]+/$|vagrant_[0-9.]+_darwin_amd64\.dmg$
+virtualization	vagrant	macos	arm64	dmg	dir:https://releases.hashicorp.com/vagrant/|^[0-9]+\.[0-9.]+/$|vagrant_[0-9.]+_darwin_arm64\.dmg$
+virtualization	vagrant	linux	x64	rpm	dir:https://releases.hashicorp.com/vagrant/|^[0-9]+\.[0-9.]+/$|vagrant-[0-9.]+-1\.x86_64\.rpm$
+virtualization	vagrant	linux	x64	deb	dir:https://releases.hashicorp.com/vagrant/|^[0-9]+\.[0-9.]+/$|vagrant_[0-9.]+-1_amd64\.deb$
+
+# ─── utilities ──────────────────────────────────────────────────────────────
+utils	rufus	windows	x64	exe	gh:pbatard/rufus:rufus-[0-9.]+\.exe$
+utils	rufus	windows	arm64	exe	gh:pbatard/rufus:rufus-.*arm64\.exe$
+utils	balena-etcher	linux	x64	rpm	gh:balena-io/etcher:balena-etcher-.*\.x86_64\.rpm$
+utils	balena-etcher	linux	x64	deb	gh:balena-io/etcher:balena-etcher_.*_amd64\.deb$
+utils	balena-etcher	macos	x64	dmg	gh:balena-io/etcher:balenaEtcher-.*-x64\.dmg$
+utils	balena-etcher	macos	arm64	dmg	gh:balena-io/etcher:balenaEtcher-.*-arm64\.dmg$
+utils	balena-etcher	windows	x64	exe	gh:balena-io/etcher:balenaEtcher-.*\.Setup\.exe$
+utils	copyq	windows	x64	exe	gh:hluk/CopyQ:copyq-.*-setup\.exe$
+utils	copyq	macos	x64	dmg	gh:hluk/CopyQ:CopyQ-.*-macos-13\.dmg$
+utils	copyq	macos	arm64	dmg	gh:hluk/CopyQ:CopyQ-.*-macos-.*-m1\.dmg$
+utils	copyq	linux	x64	AppImage	gh:hluk/CopyQ:CopyQ-.*-x86_64\.AppImage$
+utils	drawio	windows	x64	exe	gh:jgraph/drawio-desktop:draw\.io-[0-9].*-windows-installer\.exe$
+utils	drawio	macos	x64	dmg	gh:jgraph/drawio-desktop:draw\.io-universal-.*\.dmg$
+utils	drawio	linux	x64	deb	gh:jgraph/drawio-desktop:drawio-amd64-.*\.deb$
+utils	drawio	linux	x64	rpm	gh:jgraph/drawio-desktop:drawio-x86_64-.*\.rpm$
+utils	drawio	linux	arm64	deb	gh:jgraph/drawio-desktop:drawio-arm64-.*\.deb$
+utils	httpie-desktop	linux	x64	AppImage	gh:httpie/desktop:HTTPie-[0-9][^-]*\.AppImage$
+utils	httpie-desktop	macos	x64	dmg	gh:httpie/desktop:HTTPie-[0-9][^-]*\.dmg$
+utils	httpie-desktop	macos	arm64	dmg	gh:httpie/desktop:HTTPie-.*-arm64\.dmg$
+utils	httpie-desktop	windows	x64	exe	gh:httpie/desktop:HTTPie-Setup-.*\.exe$
+utils	7zip	windows	x64	exe	gh:ip7z/7zip:7z[0-9]+-x64\.exe$
+utils	7zip	windows	arm64	exe	gh:ip7z/7zip:7z[0-9]+-arm64\.exe$
+utils	7zip	linux	x64	tar.xz	gh:ip7z/7zip:7z[0-9]+-linux-x64\.tar\.xz$
+utils	7zip	linux	arm64	tar.xz	gh:ip7z/7zip:7z[0-9]+-linux-arm64\.tar\.xz$
+utils	7zip	macos	x64	tar.xz	gh:ip7z/7zip:7z[0-9]+-mac\.tar\.xz$
+utils	putty	windows	x64	msi	dir:https://the.earth.li/~sgtatham/putty/latest/w64/|putty-64bit-.*-installer\.msi$
+utils	sysinternals-suite	windows	x64	zip	https://download.sysinternals.com/files/SysinternalsSuite.zip
+utils	steam	windows	x64	exe	https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe
+utils	steam	macos	x64	dmg	https://cdn.cloudflare.steamstatic.com/client/installer/steam.dmg
+utils	steam	linux	x64	deb	https://repo.steampowered.com/steam/archive/precise/steam_latest.deb
+utils	winscp	windows	x64	exe	https://sourceforge.net/projects/winscp/files/latest/download
+utils	termius	linux	x64	deb	https://www.termius.com/download/linux/Termius.deb
+utils	termius	windows	x64	exe	https://www.termius.com/download/windows/Termius.exe
+utils	qbittorrent	windows	x64	exe	https://sourceforge.net/projects/qbittorrent/files/latest/download
+utils	teraterm	windows	x64	exe	gh:TeraTermProject/teraterm:teraterm-[0-9.]+-x64\.exe$
+utils	teraterm	windows	arm64	exe	gh:TeraTermProject/teraterm:teraterm-[0-9.]+-arm64\.exe$
+utils	maccy	macos	x64	zip	gh:p0deje/Maccy:Maccy\.app\.zip$
