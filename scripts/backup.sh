@@ -36,6 +36,9 @@ DO_ISO=1
 DO_FEDORA_REPO=1
 DO_UBUNTU_REPO=0
 DO_VSCODE=1
+DO_DOCKER=1
+DO_PYTHON=1
+DO_GOLANG=1
 FEDORA_RELEASEVER="${FEDORA_VER}"
 APP_OS_LIST=(linux macos windows)
 APP_ARCH=""
@@ -55,12 +58,18 @@ Usage:
   ./scripts/backup.sh --with-ubuntu-repo
   ./scripts/backup.sh --fedora-releasever 44
   ./scripts/backup.sh --no-vscode
+  ./scripts/backup.sh --no-docker
+  ./scripts/backup.sh --no-python
+  ./scripts/backup.sh --no-golang
 
 Main outputs:
   backup/apps/
   backup/repo-packages/
   backup/iso/
   backup/vscode-extensions/
+  backup/docker-images/
+  backup/python-packages/
+  backup/golang-packages/
 EOF
 }
 
@@ -198,6 +207,22 @@ cursor
 antigravity
 devin-desktop
 warp-terminal
+zoxide
+git-delta
+tealdeer
+ruby
+ruby-devel
+rubygems
+gcc
+gcc-c++
+make
+openssl-devel
+pkgconf-pkg-config
+kdenlive
+krita
+freecad
+sweethome3d
+calibre
 EOF
 }
 
@@ -275,6 +300,111 @@ redhat.ansible
 EOF
 }
 
+default_docker_images() {
+  cat <<'EOF'
+# OS & Base
+ubuntu:latest
+debian:latest
+alpine:latest
+# Languages
+python:3.12
+golang:1.22
+node:20
+openjdk:21
+rust:latest
+ruby:3.3
+php:8.3-fpm
+# Web & Proxies
+nginx:latest
+httpd:latest
+traefik:latest
+caddy:latest
+haproxy:latest
+# Databases & Caches
+postgres:16
+mysql:8
+mariadb:latest
+mongo:latest
+redis:latest
+memcached:latest
+elasticsearch:8.13.0
+# Message Brokers
+rabbitmq:latest
+# Observability & DevOps
+prom/prometheus:latest
+grafana/grafana:latest
+gitlab/gitlab-runner:latest
+jenkins/jenkins:lts
+hashicorp/terraform:latest
+amazon/aws-cli:latest
+sonarqube:lts
+# AI / Local LLM
+ollama/ollama:latest
+EOF
+}
+
+default_python_packages() {
+  cat <<'EOF'
+# Web & APIs
+django
+flask
+fastapi
+uvicorn
+gunicorn
+sqlalchemy
+pydantic
+# Data Science & ML
+numpy
+pandas
+scipy
+matplotlib
+scikit-learn
+seaborn
+jupyter
+# Scraping & Automation
+beautifulsoup4
+scrapy
+selenium
+# DevOps & Cloud
+ansible
+paramiko
+netmiko
+docker
+kubernetes
+boto3
+# Utils & Dev Tools
+requests
+pyyaml
+click
+pytest
+black
+flake8
+mypy
+pillow
+jinja2
+EOF
+}
+
+default_golang_packages() {
+  cat <<'EOF'
+# Core Tools & Debugging
+github.com/go-delve/delve/cmd/dlv@latest
+golang.org/x/tools/gopls@latest
+golang.org/x/tools/cmd/goimports@latest
+github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+# Testing & Mocking
+github.com/golang/mock/mockgen@latest
+gotest.tools/gotestsum@latest
+# Web, API & Dev Experience
+github.com/swaggo/swag/cmd/swag@latest
+github.com/air-verse/air@latest
+github.com/a-h/templ/cmd/templ@latest
+# Terminal Utilities
+github.com/jesseduffield/lazydocker@latest
+github.com/charmbracelet/glow@latest
+EOF
+}
+
 while [ $# -gt 0 ]; do
   case "$1" in
     --list) LIST_ONLY=1; shift ;;
@@ -283,8 +413,11 @@ while [ $# -gt 0 ]; do
     --arch) APP_ARCH="$2"; shift 2 ;;
     --no-apps) DO_APPS=0; shift ;;
     --no-iso) DO_ISO=0; shift ;;
-    --only-iso) DO_APPS=0; DO_FEDORA_REPO=0; DO_UBUNTU_REPO=0; DO_VSCODE=0; DO_ISO=1; shift ;;
+    --only-iso) DO_APPS=0; DO_FEDORA_REPO=0; DO_UBUNTU_REPO=0; DO_VSCODE=0; DO_DOCKER=0; DO_PYTHON=0; DO_GOLANG=0; DO_ISO=1; shift ;;
     --no-vscode) DO_VSCODE=0; shift ;;
+    --no-docker) DO_DOCKER=0; shift ;;
+    --no-python) DO_PYTHON=0; shift ;;
+    --no-golang) DO_GOLANG=0; shift ;;
     --no-fedora-repo|--no-repo) DO_FEDORA_REPO=0; shift ;;
     --fedora-releasever) FEDORA_RELEASEVER="$2"; shift 2 ;;
     --fedora-list) FEDORA_LIST="$2"; shift 2 ;;
@@ -297,7 +430,7 @@ done
 
 is_installer_ext() {
   case "$1" in
-    rpm|deb|dmg|pkg|msi|exe) return 0 ;;
+    rpm|deb|dmg|pkg|msi|exe|zip|tar.gz|tar.xz|AppImage|run|bin) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -677,24 +810,41 @@ download_vscode_extensions() {
     
     local pub="${ext%%.*}"
     local name="${ext#*.}"
-    local url="https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${pub}/vsextensions/${name}/latest/vspackage"
-    local dest="${ext_dir}/${ext}.vsix"
     
-    if [ -s "$dest" ]; then
-      echo "  = OK    ${ext} (already exists)"
-      skip=$((skip+1))
-      continue
-    fi
-    
-    echo "  · ${ext}  <-  ${url}"
-    if curl -fsSL -o "${dest}.tmp" "$url"; then
-      mv "${dest}.tmp" "$dest"
-      ok=$((ok+1))
-    else
-      echo "    !! failed: ${url}" >&2
-      rm -f "${dest}.tmp"
-      fail=$((fail+1))
-    fi
+    local platforms=("")
+    case "$ext" in
+      ms-python.python|golang.Go|rust-lang.rust-analyzer|ms-vscode.cpptools)
+        platforms=("linux-x64" "linux-arm64" "win32-x64" "win32-arm64" "darwin-x64" "darwin-arm64")
+        ;;
+    esac
+
+    for plat in "${platforms[@]}"; do
+      local dest
+      local url
+      if [ -z "$plat" ]; then
+        dest="${ext_dir}/${ext}.vsix"
+        url="https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${pub}/vsextensions/${name}/latest/vspackage"
+      else
+        dest="${ext_dir}/${ext}-${plat}.vsix"
+        url="https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${pub}/vsextensions/${name}/latest/vspackage?targetPlatform=${plat}"
+      fi
+
+      if [ -s "$dest" ]; then
+        echo "  = OK    ${ext} ${plat} (already exists)"
+        skip=$((skip+1))
+        continue
+      fi
+      
+      echo "  · ${ext} ${plat} <- ${url}"
+      if curl -fsSL -o "${dest}.tmp" "$url"; then
+        mv "${dest}.tmp" "$dest"
+        ok=$((ok+1))
+      else
+        echo "    !! failed: ${url}" >&2
+        rm -f "${dest}.tmp"
+        fail=$((fail+1))
+      fi
+    done
   done < <(vscode_extensions)
   
   echo "done vscode: ${ok} downloaded, ${skip} skipped, ${fail} failed"
@@ -732,7 +882,128 @@ print_plan() {
     vscode_count="$(vscode_extensions | wc -l | tr -d ' ')"
     echo "Planned VSCode extensions: ${vscode_count} extensions -> backup/vscode-extensions/"
   fi
+  if [ "$DO_DOCKER" = 1 ]; then
+    local dcount; dcount="$(default_docker_images | wc -l | tr -d ' ')"
+    echo "Planned Docker images: ${dcount} images -> backup/docker-images/"
+  fi
+  if [ "$DO_PYTHON" = 1 ]; then
+    local pcount; pcount="$(default_python_packages | wc -l | tr -d ' ')"
+    echo "Planned Python packages: ${pcount} packages -> backup/python-packages/"
+  fi
+  if [ "$DO_GOLANG" = 1 ]; then
+    local gcount; gcount="$(default_golang_packages | wc -l | tr -d ' ')"
+    echo "Planned Golang packages: ${gcount} packages -> backup/golang-packages/"
+  fi
   echo
+}
+
+download_docker_images() {
+  local out_dir="${BACKUP_ROOT}/docker-images"
+  echo "==================== DOCKER IMAGES ===================="
+  if ! command -v docker >/dev/null 2>&1; then
+    echo "docker not found; skipping docker images."
+    return 0
+  fi
+  if [ "$LIST_ONLY" = 1 ]; then
+    echo "Planned Docker images -> ${out_dir}"
+    default_docker_images | sed 's/^/  · /'
+    echo "dry-run only; no images downloaded"
+    return 0
+  fi
+
+  mkdir -p "$out_dir"
+  local ok=0 fail=0 skip=0
+
+  while read -r img; do
+    [ -z "$img" ] && continue
+    local tar_name="${img//\//_}"
+    tar_name="${tar_name//:/_}.tar"
+    local dest="${out_dir}/${tar_name}"
+    
+    if [ -s "$dest" ]; then
+      echo "  = OK    ${img} (already exists)"
+      skip=$((skip+1))
+      continue
+    fi
+    
+    echo "  · Pulling ${img}..."
+    if docker pull "$img" >/dev/null 2>&1; then
+      echo "  · Saving ${img} -> ${tar_name}"
+      if docker save "$img" -o "$dest"; then
+        ok=$((ok+1))
+      else
+        echo "    !! failed to save: ${img}" >&2
+        rm -f "$dest"
+        fail=$((fail+1))
+      fi
+    else
+      echo "    !! failed to pull: ${img}" >&2
+      fail=$((fail+1))
+    fi
+  done < <(default_docker_images)
+
+  echo "done docker: ${ok} downloaded, ${skip} skipped, ${fail} failed"
+}
+
+download_python_packages() {
+  local out_dir="${BACKUP_ROOT}/python-packages"
+  echo "==================== PYTHON PACKAGES ===================="
+  if ! command -v pip3 >/dev/null 2>&1 && ! command -v pip >/dev/null 2>&1; then
+    echo "pip/pip3 not found; skipping python packages."
+    return 0
+  fi
+  local pip_cmd="pip3"
+  command -v pip3 >/dev/null 2>&1 || pip_cmd="pip"
+
+  if [ "$LIST_ONLY" = 1 ]; then
+    echo "Planned Python packages -> ${out_dir}"
+    default_python_packages | sed 's/^/  · /'
+    echo "dry-run only; no packages downloaded"
+    return 0
+  fi
+
+  mkdir -p "$out_dir"
+  mapfile -t pkgs < <(default_python_packages)
+  
+  echo "  · Downloading python packages to ${out_dir}..."
+  if $pip_cmd download -d "$out_dir" "${pkgs[@]}"; then
+    echo "done python: all packages downloaded successfully"
+  else
+    echo "!! some python packages failed to download" >&2
+  fi
+}
+
+download_golang_packages() {
+  local out_dir="${BACKUP_ROOT}/golang-packages"
+  echo "==================== GOLANG PACKAGES ===================="
+  if ! command -v go >/dev/null 2>&1; then
+    echo "go not found; skipping golang packages."
+    return 0
+  fi
+
+  if [ "$LIST_ONLY" = 1 ]; then
+    echo "Planned Golang packages (compiled to bin) -> ${out_dir}"
+    default_golang_packages | sed 's/^/  · /'
+    echo "dry-run only; no packages compiled"
+    return 0
+  fi
+
+  mkdir -p "$out_dir"
+  export GOBIN="$(cd "$out_dir" && pwd)"
+  local ok=0 fail=0
+
+  while read -r pkg; do
+    [ -z "$pkg" ] && continue
+    echo "  · go install ${pkg} -> ${out_dir}"
+    if go install "$pkg"; then
+      ok=$((ok+1))
+    else
+      echo "    !! failed: ${pkg}" >&2
+      fail=$((fail+1))
+    fi
+  done < <(default_golang_packages)
+
+  echo "done golang: ${ok} compiled, ${fail} failed"
 }
 
 print_plan
@@ -757,6 +1028,18 @@ fi
 
 if [ "$DO_VSCODE" = 1 ]; then
   download_vscode_extensions
+fi
+
+if [ "$DO_DOCKER" = 1 ]; then
+  download_docker_images
+fi
+
+if [ "$DO_PYTHON" = 1 ]; then
+  download_python_packages
+fi
+
+if [ "$DO_GOLANG" = 1 ]; then
+  download_golang_packages
 fi
 
 echo "==================== ALL DONE ===================="
