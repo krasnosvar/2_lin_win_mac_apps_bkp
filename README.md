@@ -69,6 +69,18 @@ powershell -ExecutionPolicy Bypass -File .\scripts\backup.ps1 -List
 powershell -ExecutionPolicy Bypass -File .\scripts\backup.ps1 -InstallersOnly
 ```
 
+### Home dir configs (Linux)
+
+```bash
+# from the repository root
+./scripts/homedir_configs_bkp.sh                 # -> ~/homedir_configs_bkp-DD-MM-YYYY.zip
+./scripts/homedir_configs_bkp.sh --list          # show what will be archived
+./scripts/homedir_configs_bkp.sh --no-etc        # skip /etc
+./scripts/homedir_configs_bkp.sh --with-secrets  # also ssh/gpg/aws/kube/docker/AI-tool auth
+```
+
+Restore: `unzip -d "$HOME" <zip>`; for `/etc`: `sudo unzip -d / <zip> 'etc/*'`.
+
 ---
 
 ## ⚙️ CLI Options
@@ -109,7 +121,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\backup.ps1 -InstallersOnly
 ├── apps.tsv                   # 320 app entries — the main download manifest
 ├── scripts/
 │   ├── backup.sh              # Linux/macOS unified downloader (~760 lines)
-│   └── backup.ps1             # Windows PowerShell downloader
+│   ├── backup.ps1             # Windows PowerShell downloader
+│   └── homedir_configs_bkp.sh # zip of $HOME / /etc configs -> ~/homedir_configs_bkp-DD-MM-YYYY.zip
 └── backup/                    # ⛔ .gitignored — downloaded payload
     ├── apps/                  #   installers sorted by group/app/os-arch/
     ├── repo-packages/         #   Fedora/Ubuntu RPM/DEB caches
